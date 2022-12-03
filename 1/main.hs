@@ -1,5 +1,6 @@
 import Data.ByteString as BS (ByteString, empty, readFile, split)
 import Data.ByteString.Char8 (readInt)
+import Data.List (sortBy)
 import Data.Maybe (fromJust)
 import System.Environment (getArgs)
 
@@ -8,8 +9,15 @@ main = do
   case args of
     [path] -> do
       contents <- BS.readFile path
-      print $ maximum $ map sum $ filter (/= []) $ splitElves $ split 10 contents
+      let elves = orderedElves $ map sum $ filter (/= []) $ splitElves $ split 10 contents
+      putStrLn "Max elf: "
+      print $ head elves
+      putStrLn "\nMax 3 elves: "
+      print $ sum $ take 3 elves
     _ -> putStrLn "Please provide a path to the input file."
+
+orderedElves :: [Int] -> [Int]
+orderedElves = sortBy $ flip compare
 
 asCalories :: ByteString -> Int
 asCalories = getVal . readInt
