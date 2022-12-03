@@ -2,41 +2,47 @@ import System.Environment (getArgs)
 
 data Move = Rock | Paper | Scissors deriving (Enum, Eq)
 
-type Round = (Move, Move)
+data Outcome = Lose | Draw | Win deriving (Enum, Eq)
+
+type Strategy = (Move, Outcome)
 
 main = do
   args <- getArgs
   case args of
     [path] -> do
       contents <- readFile path
-      print $ sum $ map (roundScore . toRound) (lines contents)
+      print $ sum $ map (roundScore . toStrategy) (lines contents)
     _ -> putStrLn "Please provide a path to the input file."
 
-toRound :: String -> Round
-toRound s = (toMove a, toMove b)
+toStrategy :: String -> Strategy
+toStrategy s = (toMove a, toOutcome b)
   where
     a : b : rest = words s
 
 toMove :: String -> Move
-toMove s
-  | s `elem` ["A", "X"] = Rock
-  | s `elem` ["B", "Y"] = Paper
-  | s `elem` ["C", "Z"] = Scissors
+toMove s = case s of
+  "A" -> Rock
+  "B" -> Paper
+  "C" -> Scissors
 
-outcomeScore :: Round -> Int
-outcomeScore r
-  | roundWin r = 6
-  | roundDraw r = 3
-  | otherwise = 0
+toOutcome :: String -> Outcome
+toOutcome s = case s of
+  "X" -> Lose
+  "Y" -> Draw
+  "Z" -> Win
 
-roundWin :: (Move, Move) -> Bool
-roundWin r = r `elem` [(Rock, Paper), (Scissors, Rock), (Paper, Scissors)]
+chooseMove :: (Move, Outcome) -> Move
+chooseMove s
+  | s `elem` [(Paper, Win), (Rock, Lose)] = Scissors
+  | s `elem` [(Rock, Win), (Scissors, Lose)] = Paper
+  | s `elem` [(Scissors, Win), (Paper, Lose)] = Rock
+  | otherwise = fst s
 
-roundDraw :: Round -> Bool
-roundDraw (a, b) = a == b
+outcomeScore :: Outcome -> Int
+outcomeScore o = fromEnum o * 3
 
-shapeScore :: Round -> Int
-shapeScore (_, shape) = fromEnum shape + 1
+moveScore :: Move -> Int
+moveScore m = fromEnum m + 1
 
-roundScore :: Round -> Int
-roundScore r = shapeScore r + outcomeScore r
+roundScore :: Strategy -> Int
+roundScore s = moveScore (chooseMove s) + outcomeScore (snd s)
