@@ -9,7 +9,7 @@ main = do
   case args of
     [path] -> do
       contents <- BS.readFile path
-      let elves = orderedElves $ map sum $ filter (/= []) $ splitElves $ split 10 contents
+      let elves = orderedElves $ totalCaloriesPerElf $ splitElves $ split 10 contents
       putStrLn "Max elf: "
       print $ head elves
       putStrLn "\nMax 3 elves: "
@@ -18,6 +18,9 @@ main = do
 
 orderedElves :: [Int] -> [Int]
 orderedElves = sortBy $ flip compare
+
+totalCaloriesPerElf :: [[Int]] -> [Int]
+totalCaloriesPerElf xs = map sum $ filter (/= []) xs
 
 asCalories :: ByteString -> Int
 asCalories = getVal . readInt
